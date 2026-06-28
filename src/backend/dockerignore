@@ -1,0 +1,42 @@
+# .dockerignore — controls what Docker sends to the build daemon (build context).
+# Every file in the build context is sent over a socket to the Docker daemon.
+# A bad .dockerignore causes multi-GB context transfers and leaks secrets.
+
+# Version control
+.git/
+.gitignore
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Build output (we build inside Docker, not on host)
+target/
+
+# Test files
+src/test/
+
+# CI/CD configs
+.github/
+Jenkinsfile
+
+# Docker files (no need to include in context)
+Dockerfile*
+.dockerignore
+
+# Documentation
+*.md
+docs/
+
+# Local environment files — NEVER include in images
+.env
+.env.*
+application-local.yml
+application-local.properties
+
+# OS artifacts
+.DS_Store
+Thumbs.db

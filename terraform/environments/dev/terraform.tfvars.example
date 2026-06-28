@@ -1,0 +1,23 @@
+# Copy this file to terraform.tfvars and fill in your actual values.
+# NEVER commit terraform.tfvars to Git — it contains project-specific values.
+# Add terraform.tfvars to .gitignore.
+
+project_id     = "your-gcp-project-id"
+project_number = "123456789012"
+region         = "us-central1"
+zone           = "us-central1-a"
+github_org     = "your-github-username-or-org"
+github_repo    = "nimbus-platform"
+
+# Add your current public IP so you can reach the GKE API server.
+# Find your IP: curl ifconfig.me
+authorized_networks = [
+  {
+    cidr_block   = "YOUR_PUBLIC_IP/32"
+    display_name = "my-workstation"
+  },
+  {
+    cidr_block   = "35.235.240.0/20" # GCP Cloud Shell IPs
+    display_name = "gcp-cloud-shell"
+  }
+]

@@ -1,0 +1,22 @@
+# Terraform Cache & States
+.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*tfplan*
+.terraform.lock.hcl
+
+# Node / Frontend Cache
+node_modules/
+**/node_modules/*
+dist/
+.eslintcache
+
+# Java / Backend Cache
+target/
+**/target/*
+*.class
+
+# OS Files
+.DS_Store
+Thumbs.db
