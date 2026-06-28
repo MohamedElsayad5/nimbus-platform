@@ -1,0 +1,12 @@
+# Namespace عزل كل resources الـ Nimbus Platform عن باقي الـ cluster
+# لو حصل مشكلة في namespace تاني، مش هتأثر علينا
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus
+    app.kubernetes.io/managed-by: argocd
+    # label ده بيخلي Kubernetes يطبق Pod Security Standards
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted

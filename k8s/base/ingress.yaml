@@ -1,0 +1,40 @@
+# Ingress: بيخلق GCP HTTP Load Balancer أوتوماتيك
+# Traffic flow: Internet → GCP LB → Ingress → Service → Pod
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nimbus-ingress
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-ingress
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    # بيقول لـ GKE يستخدم GCE Ingress Controller (مش nginx)
+    kubernetes.io/ingress.class: "gce"
+    # Health check path للـ GCP Load Balancer
+    kubernetes.io/ingress.global-static-ip-name: ""
+    # Timeout للـ backend (Spring Boot محتاج وقت)
+    cloud.google.com/backend-config: '{"default": "nimbus-backend-config"}'
+spec:
+  defaultBackend:
+    service:
+      name: nimbus-frontend
+      port:
+        number: 8080
+  rules:
+    - http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: nimbus-backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nimbus-frontend
+                port:
+                  number: 8080

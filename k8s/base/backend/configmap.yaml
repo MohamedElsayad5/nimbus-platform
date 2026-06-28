@@ -1,0 +1,35 @@
+# ConfigMap: إعدادات غير سرية للـ backend
+# القيم دي بتتحط كـ environment variables جوه الـ pod
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nimbus-backend-config
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-backend
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/managed-by: argocd
+data:
+  # Database
+  DB_HOST: "nimbus-mysql"
+  DB_PORT: "3306"
+  DB_NAME: "nimbus"
+  DB_USERNAME: "nimbus"
+
+  # Redis
+  REDIS_HOST: "nimbus-redis"
+  REDIS_PORT: "6379"
+
+  # RabbitMQ
+  RABBITMQ_HOST: "nimbus-rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: "nimbus"
+
+  # Spring Boot
+  SERVER_PORT: "8080"
+  MANAGEMENT_SERVER_PORT: "8081"
+  SPRING_PROFILES_ACTIVE: "prod"
+  ENVIRONMENT: "dev"
+
+  # CORS
+  CORS_ALLOWED_ORIGINS: "http://nimbus-frontend:8080"

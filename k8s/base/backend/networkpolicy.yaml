@@ -1,0 +1,90 @@
+# NetworkPolicy: firewall rules بين الـ pods
+# بيمنع أي pod يكلم الـ backend إلا اللي مسموح بيه
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nimbus-backend-netpol
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-backend
+    app.kubernetes.io/managed-by: argocd
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: nimbus-backend
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    # مسموح للـ frontend يكلم الـ backend على 8080
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nimbus-frontend
+      ports:
+        - port: 8080
+          protocol: TCP
+    # مسموح للـ Prometheus يعمل scrape على 8081
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 8081
+          protocol: TCP
+    # مسموح للـ ingress controller يوصل
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 8080
+          protocol: TCP
+
+  egress:
+    # مسموح يكلم MySQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nimbus-mysql
+      ports:
+        - port: 3306
+          protocol: TCP
+    # مسموح يكلم Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nimbus-redis
+      ports:
+        - port: 6379
+          protocol: TCP
+    # مسموح يكلم RabbitMQ
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nimbus-rabbitmq
+      ports:
+        - port: 5672
+          protocol: TCP
+    # مسموح يكلم DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # مسموح يكلم GCP APIs (Workload Identity)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - port: 443
+          protocol: TCP

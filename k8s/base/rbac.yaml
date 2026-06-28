@@ -1,0 +1,41 @@
+# Role: بيحدد إيه اللي مسموح بيه جوه الـ nimbus namespace بس
+# least privilege: بس اللي محتاجه فعلاً
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nimbus-app-role
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-app
+    app.kubernetes.io/managed-by: argocd
+rules:
+  # الـ app محتاج يقرأ الـ ConfigMaps عشان يجيب الإعدادات
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  # محتاج يقرأ الـ Secrets عشان يجيب الـ passwords
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  # محتاج يشوف الـ pods التانية (للـ health checks)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+# RoleBinding: بيربط الـ Role بالـ ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nimbus-app-rolebinding
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-app
+    app.kubernetes.io/managed-by: argocd
+subjects:
+  - kind: ServiceAccount
+    name: nimbus-app
+    namespace: nimbus
+roleRef:
+  kind: Role
+  name: nimbus-app-role
+  apiGroup: rbac.authorization.k8s.io

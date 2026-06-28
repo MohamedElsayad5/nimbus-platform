@@ -1,0 +1,44 @@
+# HorizontalPodAutoscaler: بيزود أو بيقلل الـ replicas أوتوماتيك
+# لو الـ CPU عدت 70% → بيضيف pod جديد
+# لو الـ CPU نزلت → بيشيل pods زيادة
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nimbus-backend-hpa
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-backend
+    app.kubernetes.io/managed-by: argocd
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nimbus-backend
+  minReplicas: 2    # دايماً في 2 pods على الأقل للـ HA
+  maxReplicas: 5    # مش هيعلى عن 5 (كوست control على e2-small)
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60    # استنى دقيقة قبل ما تزود
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300   # استنى 5 دقايق قبل ما تنزل
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120

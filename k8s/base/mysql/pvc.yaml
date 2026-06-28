@@ -1,0 +1,17 @@
+# PersistentVolumeClaim: بيطلب storage من الـ cluster
+# GKE بيخلق GCP Persistent Disk أوتوماتيك
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nimbus-mysql-pvc
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-mysql
+    app.kubernetes.io/managed-by: argocd
+spec:
+  accessModes:
+    - ReadWriteOnce    # disk واحد بس يقدر يكتب في نفس الوقت
+  storageClassName: standard-rwo
+  resources:
+    requests:
+      storage: 10Gi

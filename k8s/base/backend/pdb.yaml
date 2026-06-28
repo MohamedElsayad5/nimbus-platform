@@ -1,0 +1,17 @@
+# PodDisruptionBudget: بيضمن إن في pod واحد على الأقل شغال
+# أثناء الـ node upgrades أو الـ deployments
+# بدون ده، ممكن كل الـ pods تتوقف في نفس الوقت
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nimbus-backend-pdb
+  namespace: nimbus
+  labels:
+    app.kubernetes.io/name: nimbus-backend
+    app.kubernetes.io/managed-by: argocd
+spec:
+  # minAvailable: 1 يعني لو عندي 2 pods، مينفعش يتوقفوا الاتنين مع بعض
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nimbus-backend
