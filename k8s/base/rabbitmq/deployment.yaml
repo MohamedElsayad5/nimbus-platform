@@ -7,11 +7,17 @@ metadata:
     app.kubernetes.io/name: nimbus-rabbitmq
     app.kubernetes.io/component: messaging
     app.kubernetes.io/managed-by: argocd
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app.kubernetes.io/name: nimbus-rabbitmq
+
+  strategy:
+    type: Recreate
+
   template:
     metadata:
       labels:
@@ -21,55 +27,87 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "15692"
         prometheus.io/path: "/metrics"
+
     spec:
       securityContext:
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+
       containers:
-        - name: rabbitmq
-          image: rabbitmq:3.13-management-alpine
-          ports:
-            - name: amqp
-              containerPort: 5672
-            - name: management
-              containerPort: 15672
-            - name: metrics
-              containerPort: 15692
-          env:
-            - name: RABBITMQ_DEFAULT_USER
-              value: "nimbus"
-            - name: RABBITMQ_DEFAULT_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: nimbus-rabbitmq-secret
-                  key: RABBITMQ_DEFAULT_PASS
-            - name: RABBITMQ_PLUGINS_DIR
-              value: "/opt/rabbitmq/plugins:/usr/lib/rabbitmq/plugins"
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "300m"
-              memory: "256Mi"
-          livenessProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "status"]
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            timeoutSeconds: 15
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "ping"]
-            initialDelaySeconds: 20
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          volumeMounts:
-            - name: rabbitmq-data
-              mountPath: /var/lib/rabbitmq
-      volumes:
+      - name: rabbitmq
+        image: rabbitmq:3.13-management-alpine
+        imagePullPolicy: IfNotPresent
+
+        ports:
+        - name: amqp
+          containerPort: 5672
+        - name: management
+          containerPort: 15672
+        - name: metrics
+          containerPort: 15692
+
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: nimbus
+
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: nimbus-rabbitmq-secret
+              key: RABBITMQ_DEFAULT_PASS
+
+        - name: RABBITMQ_PLUGINS_DIR
+          value: "/opt/rabbitmq/plugins:/usr/lib/rabbitmq/plugins"
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+
+        startupProbe:
+          exec:
+            command:
+              - rabbitmq-diagnostics
+              - ping
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 30
+
+        readinessProbe:
+          exec:
+            command:
+              - rabbitmq-diagnostics
+              - ping
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 5
+
+        livenessProbe:
+          exec:
+            command:
+              - rabbitmq-diagnostics
+              - status
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 5
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+        volumeMounts:
         - name: rabbitmq-data
-          emptyDir: {}    # dev بس — في production استخدم PVC
+          mountPath: /var/lib/rabbitmq
+
+      volumes:
+      - name: rabbitmq-data
+        emptyDir: {}

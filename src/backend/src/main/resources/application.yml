@@ -3,7 +3,7 @@ spring:
     name: nimbus-backend
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:nimbus}?useSSL=true&requireSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:nimbus}?useSSL=false&allowPublicKeyRetrieval=true&requireSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     username: ${DB_USERNAME:nimbus}
     password: ${DB_PASSWORD:nimbus}
     driver-class-name: com.mysql.cj.jdbc.Driver
